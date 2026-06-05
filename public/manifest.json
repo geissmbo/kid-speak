@@ -1,0 +1,18 @@
+{
+  "short_name": "KidSpeak",
+  "name": "KidSpeak Dictionary",
+  "description": "A kid-friendly dictionary app for typed and spoken word lookup.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#081426",
+  "theme_color": "#081426",
+  "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
