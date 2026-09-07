@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SearchContainer from './SearchContainer';
 import SearchHistory from './SearchHistory';
 import BackgroundSelector from './BackgroundSelector';
+import { fetchDictionaryEntries } from '../dictionary';
 
 const REQUIRED_TYPING_COUNT = 3;
 const HISTORY_LIMIT = 10;
@@ -158,12 +159,13 @@ function App() {
     setWrongWordReported(false);
     setSpellingSuggestions([]);
     setHomographOptions([]);
+    setLastApiResponse(null);
+    setShowTrophy(false);
+    setShowKeepTrying(false);
+    setStatus('Looking up the word...');
 
     try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${searchWord}`);
-      if (!response.ok) throw new Error(`Not found (${response.status})`);
-
-      const data = await response.json();
+      const data = await fetchDictionaryEntries(searchWord);
       setLastApiResponse(data);
 
       if (data.length > 1) {
@@ -179,10 +181,13 @@ function App() {
       setShowKeepTrying(false);
       setLastAudioUrl(option.audio);
       addToHistory(searchWord, option.definition);
-    } catch {
+    } catch (error) {
       setDefinition('');
-      setStatus("Couldn't find that word. Try another.");
-      setShowKeepTrying(true);
+      const notFound = error.kind === 'not-found';
+      setStatus(notFound
+        ? "Couldn't find that word. Try another."
+        : 'The dictionary is unavailable right now. Check your connection and try again shortly. You can still read words from your history.');
+      setShowKeepTrying(notFound);
       setShowTrophy(false);
     } finally {
       setIsLoading(false);

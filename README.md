@@ -63,6 +63,23 @@ Then open:
 http://localhost:3000
 ```
 
+## Dictionary Service Failures
+
+Lookups use `api.dictionaryapi.dev` directly. A service timeout (for example,
+Cloudflare HTTP 522) can lack CORS headers, so browsers may report a CORS error
+instead of the underlying timeout. This cannot be corrected with a frontend
+CORS setting.
+
+The app allows eight seconds per request and retries once with a fresh URL for
+network or service failures. A genuine HTTP 404 is reported as a missing word;
+other failures show a service-unavailable message. Previously saved words remain
+readable from history. The service worker handles only this app's same-origin
+files and never substitutes offline HTML for dictionary API responses.
+
+Run the regression checks with `npm test -- --watchAll=false --runInBand`.
+Changes reach the live GitHub Pages site after a push to `main` successfully
+completes the deployment workflow.
+
 ## Project Structure
 
 ```text
