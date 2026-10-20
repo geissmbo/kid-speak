@@ -8,7 +8,7 @@ KidSpeak is a kid-friendly dictionary app for looking up words by typing, hearin
 - Text-to-speech playback for words and definitions.
 - Speech search after a short typed-word warm-up.
 - Search history stored in the browser.
-- Pronunciation choices for words with multiple dictionary entries.
+- Meaning choices for words with multiple dictionary entries.
 - Touch-friendly layout for tablets and phones.
 - PWA metadata so the app can be added to an iPad Home Screen.
 
@@ -65,10 +65,15 @@ http://localhost:3000
 
 ## Dictionary Service Failures
 
-Lookups use `api.dictionaryapi.dev` directly. A service timeout (for example,
-Cloudflare HTTP 522) can lack CORS headers, so browsers may report a CORS error
-instead of the underlying timeout. This cannot be corrected with a frontend
-CORS setting.
+Lookups use [FreeDictionaryAPI.com](https://freedictionaryapi.com/) directly,
+with Wiktionary definitions licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+The app links to the original Wiktionary word and displays provider attribution.
+Read-aloud uses browser speech synthesis; the new provider supplies phonetic text
+but no audio files. The provider allows 1,000 requests per hour per IP address.
+
+This replaces `api.dictionaryapi.dev`, which returned Cloudflare 530/1033 errors
+without CORS headers in October 2026. Changing frontend CORS settings cannot
+repair an upstream outage.
 
 The app allows eight seconds per request and retries once with a fresh URL for
 network or service failures. A genuine HTTP 404 is reported as a missing word;

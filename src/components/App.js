@@ -29,6 +29,7 @@ function App() {
   const [homographOptions, setHomographOptions] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
   const [lastAudioUrl, setLastAudioUrl] = useState('');
+  const [sourceWord, setSourceWord] = useState('');
   const recognitionRef = useRef(null);
 
   const selectedVoice = useMemo(
@@ -98,10 +99,10 @@ function App() {
     return () => clearTimeout(timer);
   }, [showKeepTrying]);
 
-  const addToHistory = (historyWord, meaning) => {
+  const addToHistory = (historyWord, meaning, dictionaryWord = historyWord) => {
     setSearchHistory((currentHistory) => {
       const newHistory = [
-        { word: historyWord, definition: meaning, timestamp: new Date().toISOString() },
+        { word: historyWord, definition: meaning, sourceWord: dictionaryWord, timestamp: new Date().toISOString() },
         ...currentHistory.filter((item) => item.word !== historyWord),
       ].slice(0, HISTORY_LIMIT);
 
@@ -160,6 +161,7 @@ function App() {
     setSpellingSuggestions([]);
     setHomographOptions([]);
     setLastApiResponse(null);
+    setSourceWord('');
     setShowTrophy(false);
     setShowKeepTrying(false);
     setStatus('Looking up the word...');
@@ -167,10 +169,11 @@ function App() {
     try {
       const data = await fetchDictionaryEntries(searchWord);
       setLastApiResponse(data);
+      setSourceWord(data[0].word);
 
       if (data.length > 1) {
         setHomographOptions(data.map(extractEntryOption));
-        setStatus('This word has more than one pronunciation. Choose the one you want.');
+        setStatus('This word has more than one dictionary entry. Choose the meaning you want.');
         return;
       }
 
@@ -256,6 +259,7 @@ function App() {
   };
 
   const selectHistoryItem = (item) => {
+    setSourceWord(item.sourceWord || item.word.replace(/\s*\(.*$/, ''));
     setWord(`You selected: ${item.word}`);
     setDefinition(`Meaning: ${item.definition}`);
     setStatus('Retrieved from history.');
@@ -323,7 +327,7 @@ function App() {
     setLastAudioUrl(option.audio);
     setShowTrophy(true);
     setShowKeepTrying(false);
-    addToHistory(option.phonetic ? `${option.word} (${option.phonetic})` : option.word, option.definition);
+    addToHistory(option.phonetic ? `${option.word} (${option.phonetic})` : option.word, option.definition, option.word);
   };
 
   return (
@@ -358,7 +362,7 @@ function App() {
 
       {homographOptions.length > 0 && (
         <section className="homograph-selector">
-          <h2>Choose a pronunciation</h2>
+          <h2>Choose a meaning</h2>
           <div className="homograph-options">
             {homographOptions.map((option) => (
               <button key={option.id} className="homograph-option" onClick={() => selectHomograph(option)}>
@@ -410,6 +414,11 @@ function App() {
 
       <SearchHistory history={searchHistory} clearHistory={clearHistory} selectHistoryItem={selectHistoryItem} />
       <BackgroundSelector selectedBackground={selectedBackground} onBackgroundChange={setSelectedBackground} />
+      <p className="dictionary-attribution">
+        Dictionary data from <a href="https://freedictionaryapi.com/">FreeDictionaryAPI.com</a> and{' '}
+        <a href={sourceWord ? `https://en.wiktionary.org/wiki/${encodeURIComponent(sourceWord)}` : 'https://en.wiktionary.org/'}>Wiktionary</a>
+        {' '}(<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>).
+      </p>
 
       {showHelp && (
         <div className="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
